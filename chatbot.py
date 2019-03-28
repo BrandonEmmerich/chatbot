@@ -15,50 +15,45 @@ def get_corpus():
 
     return data
 
-def LemTokens(tokens):
-    return [lemmer.lemmatize(token) for token in tokens]
-
 def LemNormalize(text):
-    return LemTokens(nltk.word_tokenize(text.lower().translate(remove_punctuation)))
+    cleaned_text = text.lower().translate(remove_punctuation)
+    tokens = nltk.word_tokenize(cleaned_text)
+    lemmatized_tokens = [lemmer.lemmatize(token) for token in tokens]
 
+    return lemmatized_tokens
 
-def response(user_response):
+def chatbot_response(user_input):
     robo_response=''
-    sentence_tokens.append(user_response)
+    sentence_tokens.append(user_input)
 
-    TfidfVec = TfidfVectorizer(tokenizer=LemNormalize, stop_words='english')
-    tfidf = TfidfVec.fit_transform(sentence_tokens)
-    vals = cosine_similarity(tfidf[-1], tfidf)
-    idx=vals.argsort()[0][-2]
-    flat = vals.flatten()
+    tfidf_matrix = vectorizer.fit_transform(sentence_tokens)
+    cosine_similarity_values = cosine_similarity(tfidf_matrix[-1], tfidf_matrix)
+    index=cosine_similarity_values.argsort()[0][-2]
+
+    flat = cosine_similarity_values.flatten()
     flat.sort()
-    req_tfidf = flat[-2]
+    token_tfidf = flat[-2]
 
-    if(req_tfidf==0):
+    if(token_tfidf==0):
         robo_response=robo_response+"I am sorry! I don't understand you"
+        sentence_tokens.remove(user_input)
+
         return robo_response
+
     else:
-        robo_response = robo_response+sentence_tokens[idx]
+        robo_response = robo_response+sentence_tokens[index]
+        sentence_tokens.remove(user_input)
+
         return robo_response
+
 
 
 if __name__ == '__main__':
     data = get_corpus()
     sentence_tokens = data['sentence_tokens']
-    flag = True
+    vectorizer = TfidfVectorizer(tokenizer=LemNormalize, stop_words='english')
 
-    while(flag==True):
-        user_response = str(input())
-        user_response=user_response.lower()
-
-        if(user_response!='bye'):
-            if(user_response=='thanks' or user_response=='thank you' ):
-                flag=False
-                print("Chatbot: You are welcome.")
-            else:
-                print("Chatbot: ")
-                print(response(user_response))
-                sentence_tokens.remove(user_response)
-        else:
-            flag=False
-            print("Chatbot: Bye! take care.")
+    while True:
+        user_input = str(input())
+        user_input = user_input.lower()
+        print("Chatbot: " + chatbot_response(user_input))
