@@ -10,7 +10,7 @@ lemmer = nltk.stem.WordNetLemmatizer()
 remove_punctuation = dict((ord(punct), None) for punct in string.punctuation)
 
 def get_corpus():
-    with open('data/obama.json') as f:
+    with open('data/presidents.json') as f:
         data = json.load(f)
 
     return data
@@ -49,9 +49,13 @@ def chatbot_response(user_input):
 
 
 if __name__ == '__main__':
-    data = get_corpus()
-    sentence_tokens = data['sentence_tokens']
     vectorizer = TfidfVectorizer(tokenizer=LemNormalize, stop_words='english')
+    data = get_corpus()
+
+    sentence_tokens = []
+    for d in data['data']:
+        for token in d['sentence_tokens']:
+            sentence_tokens.append(token)
 
     while True:
         user_input = str(input())
